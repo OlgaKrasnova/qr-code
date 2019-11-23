@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://unpkg.com/vue@2.6.10/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/vue-qrcode-reader@2.0.3/dist/vue-qrcode-reader.browser.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/vue-qrcode-reader@2.0.3/dist/vue-qrcode-reader.css">    
+
     <title>Document</title>
 </head>
 <body>
@@ -11,64 +15,76 @@
 <script src="node_modules/qrious/dist/qrious.js"></script>
 <script>
   (function() {
-    var $background = document.querySelector('main form [name="background"]');
-    var $backgroundAlpha = document.querySelector('main form [name="backgroundAlpha"]');
-    var $foreground = document.querySelector('main form [name="foreground"]');
-    var $foregroundAlpha = document.querySelector('main form [name="foregroundAlpha"]');
-    var $level = document.querySelector('main form [name="level"]');
-    var $section = document.querySelector('main section');
-    var $padding = document.querySelector('main form [name="padding"]');
-    var $size = document.querySelector('main form [name="size"]');
-    var $value = document.querySelector('main form [name="value"]');
-
+    
     var qr = window.qr = new QRious({
       element: document.getElementById('qrious'),
       size: 250,
       value: 'QRious'
     });
 
-    $background.addEventListener('change', function() {
-      qr.background = $background.value || null;
-    });
-
-    $backgroundAlpha.addEventListener('change', function() {
-      qr.backgroundAlpha = $backgroundAlpha.value || null;
-    });
-
-    $foreground.addEventListener('change', function() {
-      qr.foreground = $foreground.value || null;
-    });
-
-    $foregroundAlpha.addEventListener('change', function() {
-      qr.foregroundAlpha = $foregroundAlpha.value || null;
-    });
-
-    $level.addEventListener('change', function() {
-      qr.level = $level.value;
-    });
-
-    $padding.addEventListener('change', function() {
-      if ($padding.validity.valid) {
-        qr.padding = $padding.value !== '' ? $padding.value : null;
-      }
-    });
-
-    $size.addEventListener('change', function() {
-      if (!$size.validity.valid) {
-        return;
-      }
-
-      qr.size = $size.value || null;
-
-      $section.style.minWidth = qr.size + 'px';
-    });
-
-    $value.value = 'QRious';
-    $value.addEventListener('input', function() {
-      qr.value = $value.value;
-    });
+    
   })();
 </script>
-    <script src="node_modules/qrious/dist/qrious.js"></script>
+
+
+
+<div id="app">
+  <p>
+    Last result: <b>{{ decodedContent }}</b>
+  </p>
+
+  <p class="error">
+    {{ errorMessage }}
+  </p>
+
+  <qrcode-stream @decode="onDecode" @init="onInit"></qrcode-stream>
+</div>
 </body>
+<script>
+new Vue({
+  el: '#app',
+
+  data() {
+    return {
+      decodedContent: '',
+      errorMessage: ''
+    }
+  },
+
+  methods: {
+    onDecode(content) {
+      this.decodedContent = content
+    },
+
+    onInit(promise) {
+      promise.then(() => {
+          console.log('Successfully initilized! Ready for scanning now!')
+        })
+        .catch(error => {
+          if (error.name === 'NotAllowedError') {
+            this.errorMessage = 'Hey! I need access to your camera'
+          } else if (error.name === 'NotFoundError') {
+            this.errorMessage = 'Do you even have a camera on your device?'
+          } else if (error.name === 'NotSupportedError') {
+            this.errorMessage = 'Seems like this page is served in non-secure context (HTTPS, localhost or file://)'
+          } else if (error.name === 'NotReadableError') {
+            this.errorMessage = 'Couldn\'t access your camera. Is it already in use?'
+          } else if (error.name === 'OverconstrainedError') {
+            this.errorMessage = 'Constraints don\'t match any installed camera. Did you asked for the front camera although there is none?'
+          } else {
+            this.errorMessage = 'UNKNOWN ERROR: ' + error.message
+          }
+        })
+    }
+  }
+})
+
+</script>
+
+<link href="vue-qrcode-reader.css" rel="stylesheet">
+<script src="vue-qrcode-reader.browser.js"></script>
+    <script src="node_modules/qrious/dist/qrious.js"></script>
+
+</body>
+
 </html>

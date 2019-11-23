@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "qrious": "^4.0.2"
+    "qrious": "^4.0.2",
+    "vue-qrcode-reader": "^2.1.1"
   }
 }
